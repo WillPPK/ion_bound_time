@@ -1,0 +1,37 @@
+import numpy as np
+import matplotlib.pyplot as plt
+import pandas as pd
+
+rmsd = dict()
+
+for ion in ['NA1', 'NA2', 'CL1', 'CL2', 'CL3', 'CL4', 'K1', 'K2']:
+    for repeat in range(1, 4):
+        name = '{}_{}.xvg'.format(ion, repeat)
+        rmsd[name] = np.genfromtxt(name, usecols=(1), skip_header=18)
+
+time = np.genfromtxt('NA1_1.xvg', usecols=(0), skip_header=18)/1000
+
+
+def boundtime(time, wiggle):
+	timestart = time.max()
+	timeend = 0
+	for i, dev in enumerate(wiggle):		
+		if dev > 1:
+			timestart = min(time[i], timestart)
+			timeend = time[i]
+			if timeend - timestart >= 10:
+				return timestart
+		else:
+			timestart = time.max()
+	return 500
+
+def boundtimeall(time, rmsddict):
+	boundtimedict = dict()
+	for name in rmsddict:
+		boundtimedict[name] = boundtime(time, rmsddict[name])
+	return boundtimedict
+
+printdict = boundtimeall(time, rmsd)
+
+for name in printdict:
+	print(name,': ',printdict[name])
